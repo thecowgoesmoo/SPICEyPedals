@@ -1,0 +1,90 @@
+*---------------------------------------------------------------------------
+*  AION “FLARE”  –  Zvex Fuzz Factory (stock values, 9 V)
+*---------------------------------------------------------------------------
+
+***** SUPPLY & POWER FILTER ***********************************************
+VRAW    9VRAW     0           DC 9               ; battery / adaptor
+D1      9VRAW     VA          D1N5817            ; reverse-polarity
+R7      VA        VCC         100                ; 100 Ω RC filter
+C7      VCC       0           100u               ; bulk reservoir
+C8      VCC       0           100u               ; extra reserve
+C9      VCC       0           100n               ; HF bypass
+
+***** INPUT & PULLDOWN ****************************************************
+RPD     IN        0           2.2Meg            ; input pulldown
+
+***** “BODY” – bass-blend capacitor pot ***********************************
+* 100 kB pot cross-fading 100 n ↔ 10 µ series caps
+* BODY_W is the wiper (to first gain stage)
+CB100N  IN        BODY_TOP    100n
+CB10U   IN        BODY_BOT    10u
+RBODY_T IN        BODY_W      1            ; pot at max
+RBODY_B BODY_W    BODY_BOT    99k
+
+***** “SOFT” – input gain reduction ***************************************
+RSOFT_T BODY_W    SOFT_W      1             ; 100 kB pot
+RSOFT_B SOFT_W    0           99k
+
+***** FIRST STAGE – LPB-1 style booster (Q1) ******************************
+R1      SOFT_W    0           120k           ; bias to ground
+C1      SOFT_W    B_Q1        10u            ; input coupling
+Q1      C_Q1      B_Q1   0    2N3904_NPN
+R2      VCC       C_Q1        10k            ; collector load
+
+***** “SOFTNESS” cap (post-boost HF roll-off) *****************************
+C2      C_Q1      0           10n
+
+***** “STABILITY” pot – variable supply sag *******************************
+RSTAB_T VCC       STAB_W      1              ; 10 kB
+RSTAB_B STAB_W    0           9.99k
+.alias VBATT STAB_W                                   ; bias for fuzz pair
+
+***** FUZZ FACE CORE  *****************************************************
+* Q2 & Q3 are a classic PNP germanium pair with lots of tweak points
+C3      C_Q1      B_Q2        10u            ; drive cap (acts like “INPUT”)
+R3      B_Q2      0           47k            ; base bias for Q2
+Q2      C_Q2      B_Q2   E_Q23  PNP_GE
+R4      C_Q2      VBATT       470            ; “COMP” 470 Ω to VBATT
+* “COMP” pot is wired as variable resistor in series with R4
+RCOMP_T C_Q2      COMP_W      1              ; 10 kB
+RCOMP_B COMP_W    VBATT       9.99k
+
+Q3      VBATT     B_Q3   E_Q23  PNP_GE       ; shared emitter with Q2
+R5      VBATT     0           5.1k          ; “GATE” series resistor
+RGATE_T VBATT     GATE_W      1             ; 10 kB pot
+RGATE_B GATE_W    0           9.99k
+* Collector load / fuzz gain set by “DRIVE” pot
+RDRIVE_T C_Q2     DRIVE_W     1             ; 10 kB
+RDRIVE_B DRIVE_W  VBATT       9.99k
+
+***** “TONE” – SWTC single-pole treble cut *******************************
+C6      C_Q2      TONE_W      18n
+RTONE_T TONE_W    OUT_RAW     1             ; 10 kB (full treble)
+RTONE_B OUT_RAW   0           9.99k
+
+***** OUTPUT VOLUME *******************************************************
+C5      OUT_RAW   VOL_TOP     10u
+RVOL_T  VOL_TOP   OUT         1              ; 5 kB pot
+RVOL_B  OUT       0           4.99k
+
+***** SPARE POWER FILTER CAP (unused in audio path) ***********************
+C4      VBATT     0           10u
+
+***** DEVICE MODELS *******************************************************
+.model 2N3904_NPN NPN (BF=180 IS=5e-15 VAF=100)
+.model PNP_GE     PNP (BF=60  IS=1e-9  VAF=60  ISE=3e-8 RE=50m RB=50 RC=50)
+
+.model D1N5817    D(IS=35u N=1.2 RS=0.05 CJO=110p TT=10n)
+
+*---------------------------------------------------------------------------
+.control
+  * Simple 500 Hz test tone @ 200 mVpk after pots
+  vin  IN  0  SIN(0 0.2 500)
+
+  tran 5u 40m
+  plot v(IN) v(OUT)
+
+  * Uncomment for frequency sweep
+  *ac dec 30 20 20k
+.endc
+.end
