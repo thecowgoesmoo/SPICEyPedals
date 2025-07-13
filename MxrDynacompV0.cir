@@ -1,0 +1,167 @@
+
+* MXR Dyna Comp (LM13700 version) – ngspice netlist
+* Transcribed by Robot Moog – 13 Jul 2025
+* Node labels follow the explicit net-labels found in the .asc file.
+* BJTs are numbered C# B# E#; electrolytics list the “+” rail first.
+*---------------------------------------------------------------------------
+
+.param  VCC      9
+.param  Vin_pk   50m         * 50 mV p-p test level
+.param  Rsensitivity 10k
+.param  Rtrim         1k
+.param  Routput       50k
+
+*--- Rails ------------------------------------------------------------------
+VCC   V9P0   0           DC {VCC}
+VBias V3P0   0           DC {VCC/3}          * ~3 V virtual ground
+VIN   V_in   0           SIN(0 {Vin_pk} 500)
+
+*--- Bias divider / supply decoupling --------------------------------------
+R1    V9P0   V3P0        56k
+R2    V3P0   0           27k
+C1    V3P0   0           1uF    ;+
+
+C11   V3P0   0           10uF   ;+
+
+*--- Input buffer (Q1) ------------------------------------------------------
+C2    V_in       N_C2           10n
+R3    V3P0       B1             4.7Meg
+R4    N_C2       B1             10k
+R5    B1         V9P0           1Meg
+Q1    V9P0  B1  E1              2N3904
+R6    E1         0              10k
+C3    E1         0              1u    ;+
+.alias V_Inv_OTA  E1            * emitter is the OTA “-IN”
+
+*--- OTA & trim network (LM13700 │ U1) -------------------------------------
+R9    V_nInv_OTA   Vtrim                 {2k - Rtrim + 1}
+R10   Vtrim        0                     {Rtrim + 1}
+R11   V_nInv_OTA   0                     470k
+R12   V_nInv_OTA   V_OTA_Out             15k
+R23   V_OTA_GainSet V_OTA_Ifeedback      27k
+
+* pin order: +IN  −IN  OUT  Iabc  GainSet  V-  V+
+*XU1   V_Inv_OTA  V_nInv_OTA  V_OTA_Out  V_OTA_Ifeedback  V_OTA_GainSet 0  V9P0 LM13700
+XU1    AmpBias NNCC V_nInv_OTA  V_Inv_OTA V_OTA_Out  0 NNCC  V_OTA_GainSet  V9P0 LM13700
+
+
+*--- Envelope detector ------------------------------------------------------
+R13   V3P0            V_OTA_Out          150k
+C6    V3P0            V_OTA_Out          1n
+R14   V_OTA_Out       C2_Q2              10k
+R15   V9P0            V_env_det_comp     10k
+Q2    C2_Q2   V_env_det_comp  V_OTA_Out   2N3904
+R16   V_env_det_comp  V_env_det          1Meg
+D1    V_env_det_comp  V_env_det          D4148
+C7    V_env_det_comp  V_env_det          10n
+R17   V_env_det       0                  1Meg
+D2    V_env_det       0                  D4148
+C8    V_env_det       0                  10n
+
+*--- Level-sensing transistor stack ----------------------------------------
+R18   V9P0         C3_Q3                 150k
+Q3    C3_Q3        V_env_det_comp  0      2N3904
+Q4    C4_Q4        V_env_det        0     2N3904
+C9    C4_Q4        0                      10u ;+
+R19   V_env_level  0                      {Rsensitivity}
+Q5    V9P0         V_env_level     V_OTA_Ifeedback  2N3904
+
+*--- Output & volume control ------------------------------------------------
+C10   V_comp_out    N_OUT_AC            50n
+R20   N_OUT_AC      Vout                10k
+R21   N_OUT_AC      Vout                {50k - Routput + 1}
+R22   Vout          0                   {Routput + 1}
+
+*--- Models (ngspice/examples library) -------------------------------------
+.model 2N3904  NPN(Bf=200 Vaf=100 Is=6.7e-15)
+.model D4148   D(IS=2.52e-9 N=1.72 Rs=0.568 Cjo=2pF M=0.333 Vj=0.75 Xti=3)
+* \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\            
+* LM13700 Dual Operational Transconductance Amplifier                 
+* \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\                 
+*
+*                   Amplifier Bias Input
+*                   | Diode Bias
+*                   | | Positive Input
+*                   | | | Negative Input
+*                   | | | | Output
+*                   | | | | | Negative power supply
+*                   | | | | | | Buffer Input
+*                   | | | | | | | Buffer Output
+*                   | | | | | | | | Positive power supply
+*                   | | | | | | | | |
+.SUBCKT LM13700     1 2 3 4 5 6 7 8 11
+*
+* Features:
+* gm adjustable over 6 decades.
+* Excellent gm linearity.
+* Linearizing diodes.
+* Wide supply range of +/-2V to +/-22V.
+*
+* Note:  This model is single-pole in nature and over-estimates
+*       AC bandwidth and phase margin (stability) by over 2X.   
+*       Although refinement may be possible in the future, please
+*       use benchtesting to finalize AC circuit design.
+* 
+* Note: Model is for single device only and simulated
+*       supply current is 1/2 of total device current.
+*
+******************************************************
+* 
+C1  6  4  4.8P
+C2  3  6  4.8P
+* Output capacitor  
+C3  5  6  6.26P                                       
+D1  2  4  DX
+D2  2  3  DX
+D3  11 21 DX
+D4  21 22 DX
+D5  1  26 DX
+D6  26 27 DX
+D7  5  29 DX
+D8  28 5  DX
+D10 31 25 DX
+* Clamp for -CMR  
+D11 28 25 DX                                        
+* Ios source 
+F1  4  3  POLY(1)   V6 1E-10 5.129E-2 -1.189E4 1.123E9 
+F2  11 5  V2        1.022
+F3  25 6  V3        1.0
+F4  5  6  V1        1.022
+* Output impedance 
+F5  5  0  POLY(2)   V3 V7 0 0 0 0 1                  
+G1  0  33 5         0 .55E-3
+I1  11 6  300U
+Q1  24 32 31        QX1
+Q2  23 3  31        QX2
+Q3  11 7  30        QZ
+Q4  11 30 8         QY
+V1  22 24 0V
+V2  22 23 0V
+V3  27 6  0V
+V4  11 29 1.4
+V5  28 6  1.2
+V6  4  32 0V
+V7  33 0  0V
+.MODEL QX1 NPN (IS=5E-16     BF=200 NE=1.15 ISE=.63E-16 IKF=1E-2)
+.MODEL QX2 NPN (IS=5.125E-16 BF=200 NE=1.15 ISE=.63E-16 IKF=1E-2)
+.MODEL QY  NPN (IS=6E-15     BF=50)
+.MODEL QZ  NPN (IS=5E-16     BF=266)  
+.MODEL DX  D   (IS=5E-16)
+.ENDS
+*$
+*.include LM13700.sub   * stock OTA model (place in ngspice search path)
+.include LM13700.mod
+
+*--- Analyses --------------------------------------------------------------
+**.op
+***.tran 0 20m 0 2u
+**.tran 2u 100m 80m
+.op
+.control
+  run
+  *plot v(IN) v(OUT)
+  plot v(OUT)
+ * plot db(OUT)
+.endc
+.end
+.end

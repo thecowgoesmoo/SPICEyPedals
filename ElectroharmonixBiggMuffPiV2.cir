@@ -104,16 +104,28 @@ R18     TONE_TOP  0         33k
 .model D1N5817 D (IS=35u RS=0.05 N=1.2 CJO=110p TT=10n)
 
 *---------------------------------------------------------------------------
+*.control
+*  * quick sanity check
+*  * 100 mVp 1 kHz sine
+*  *vin IN 0 SIN(0 0.1 1k)*
+
+*  * comment the next two lines and uncomment the .ac if you’d rather sweep
+*  *tran 5u 100m
+*  tran 2u 100m 80m
+*  plot v(IN) v(OUT)*
+
+*  *ac dec 30 20 20k
+*.endc
+*.end
+
+.tran 2u 100m 80m
+.op
 .control
-  * quick sanity check
-  * 100 mVp 1 kHz sine
-  *vin IN 0 SIN(0 0.1 1k)
-
-  * comment the next two lines and uncomment the .ac if you’d rather sweep
-  *tran 5u 100m
-  tran 2u 100m 80m
-  plot v(IN) v(OUT)
-
-  *ac dec 30 20 20k
+  run
+  *plot v(IN) v(OUT)
+ ** plot v(OUT)
+ * plot db(OUT)
+ print OUT
+ quit
 .endc
 .end

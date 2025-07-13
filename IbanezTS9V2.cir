@@ -6,7 +6,7 @@
 *  Transient plot   : 80 ms → 100 ms, 2 µs step
 *-------------------------------------------------------------
 * SIGNAL SOURCE ------------------------------------------------
-vin  IN  0  SIN(0 0.3 500)      ; 50 mVpk, 500 Hz
+vin  IN  0  SIN(0 0.1 500)      ; 50 mVpk, 500 Hz
 
 * SUPPLY & VIRTUAL MID-RAIL -----------------------------------
 VCC   9V  0   DC 9
@@ -105,10 +105,22 @@ Cout   7 0  1p
 
 *-------------------------------------------------------------
 * ANALYSIS -----------------------------------------------------
+*.tran 2u 100m 80m
+*.op
+*.control
+*  run
+*  plot v(IN) v(OUT)
+*.endc
+*.end
+
 .tran 2u 100m 80m
 .op
 .control
   run
-  plot v(IN) v(OUT)
+  *plot v(IN) v(OUT)
+ ** plot v(OUT)
+ * plot db(OUT)
+ print OUT
+ quit
 .endc
 .end

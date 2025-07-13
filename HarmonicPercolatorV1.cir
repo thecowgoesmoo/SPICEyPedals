@@ -64,15 +64,27 @@ RBAL_B  OUT      0          49.0k              ; 50 kA at full clockwise
 .model 1N914 D (Is=2.52n Rs=.568 N=1.752 Cjo=4p M=.4 tt=20n Iave=200m Vpk=75)
 
 *---------------------------------------------------------------------------
+*.control
+*  * Small-signal frequency sweep
+*  *ac dec 30 20 20k
+*  *plot vdb(IN) vdb(OUT)
+*  * Transient test – 200 mVp, 500 Hz sine into full-CW Harmonics  
+*  tran 2u 100m 80m
+*  *plot v(IN) v(OUT)
+*plot v(OUT)
+**plot v(IN) vs v(OUT)
+**plot v(OUT) vs v(IN)
+*.endc
+*.end
+
+.tran 2u 100m 80m
+.op
 .control
-  * Small-signal frequency sweep
-  *ac dec 30 20 20k
-  *plot vdb(IN) vdb(OUT)
-  * Transient test – 200 mVp, 500 Hz sine into full-CW Harmonics  
-  tran 2u 100m 80m
+  run
   *plot v(IN) v(OUT)
-plot v(OUT)
-*plot v(IN) vs v(OUT)
-*plot v(OUT) vs v(IN)
+ ** plot v(OUT)
+ * plot db(OUT)
+ print OUT
+ quit
 .endc
 .end
