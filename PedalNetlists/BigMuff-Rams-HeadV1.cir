@@ -1,0 +1,72 @@
+
+.param    P1_POS   = 0.5   ;Volume
+.param    P2_POS   = 0.5   ;Sustain
+.param    P3_POS   = 0.5   ;Tone
+
+.include "./PartModels/1N914.LIB"
+.model __RV2 potentiometer( r=100k position={P2_POS} )
+.model __Q4 NPN
+.model __Q2 NPN
+.model __RV1 potentiometer( r=100k position={P3_POS} )
+.model __Q1 NPN
+.model __Q3 NPN
+.model __RV3 potentiometer( r=100k position={P1_POS} )
+
+R17 RamsHead_Clip2 Net-_C11-Pad2_ 33k
+R18 GND Net-_C10-Pad1_ 33k
+R20 GND Net-_Q4-B_ 100k
+R22 GND Net-_Q4-E_ 2.7k
+C11 GND Net-_C11-Pad2_ 12n
+ARV2 Net-_C11-Pad2_ Net-_C12-Pad1_ Net-_C10-Pad1_ __RV2
+C10 Net-_C10-Pad1_ RamsHead_Clip2 4n
+C13 Net-_Q4-C_ Net-_C13-Pad2_ 470n
+R19 Net-_Q4-B_ VCC 470k
+C12 Net-_C12-Pad1_ Net-_Q4-B_ 470n
+R21 Net-_Q4-C_ VCC 12k
+Q4 Net-_Q4-C_ Net-_Q4-B_ Net-_Q4-E_ __Q4
+Q2 RamsHead_Clip1 Net-_Q2-B_ Net-_Q2-E_ __Q2
+D2 Net-_D1-A_ RamsHead_Clip1 1N914
+R12 Net-_C7-Pad2_ Net-_Q3-B_ 7.5k
+C7 RamsHead_Clip1 Net-_C7-Pad2_ 47n
+R11 Net-_Q2-E_ GND 100
+R9 Net-_Q2-B_ GND 100k
+C3 RamsHead_Boost Net-_C3-Pad2_ 470n
+ARV1 Net-_R6-Pad1_ Net-_C4-Pad1_ Net-_C3-Pad2_ __RV1
+R7 Net-_C4-Pad2_ Net-_Q2-B_ 7.5k
+C4 Net-_C4-Pad1_ Net-_C4-Pad2_ 470n
+R6 Net-_R6-Pad1_ GND 1.2k
+Q1 RamsHead_Boost Net-_Q1-B_ Net-_Q1-E_ __Q1
+R2 Net-_Q1-B_ GND 100k
+R5 Net-_Q1-E_ GND 100
+C1 Net-_C1-Pad1_ Net-_Q1-B_ 470n
+R3 Net-_Q1-B_ RamsHead_Boost 470k
+D4 Net-_D3-A_ RamsHead_Clip2 1N914
+C8 Net-_D3-A_ Net-_Q3-B_ 47n
+R15 RamsHead_Clip2 VCC 12k
+D3 RamsHead_Clip2 Net-_D3-A_ 1N914
+R14 Net-_Q3-B_ GND 100k
+R16 Net-_Q3-E_ GND 100
+Q3 RamsHead_Clip2 Net-_Q3-B_ Net-_Q3-E_ __Q3
+C9 RamsHead_Clip2 Net-_Q3-B_ 470p
+R13 Net-_Q3-B_ RamsHead_Clip2 470k
+R10 RamsHead_Clip1 VCC 12k
+C6 RamsHead_Clip1 Net-_Q2-B_ 470p
+R8 Net-_Q2-B_ RamsHead_Clip1 470k
+C5 Net-_D1-A_ Net-_Q2-B_ 470n
+D1 RamsHead_Clip1 Net-_D1-A_ 1N914
+ARV3 GND Rams_Head_Out Net-_C13-Pad2_ __RV3
+R1 Net-_C1-Pad1_ Input 33k
+C2 RamsHead_Boost Net-_Q1-B_ 470p
+R4 RamsHead_Boost VCC 12k
+
+V1 VCC GND DC 9 
+V2 Input GND DC 0 SIN( 0 50m 500 0 0 0 ) AC 1  
+
+.tran 2u 100m 80m
+.op
+.control
+ run
+ print Rams_Head_Out
+ quit
+.endc
+.end

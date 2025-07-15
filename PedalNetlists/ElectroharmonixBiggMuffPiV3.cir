@@ -1,0 +1,145 @@
+
+.param    P1_POS   = 0.5   ;Sustain
+.param    P2_POS   = 0.5   ;Volume
+.param    P3_POS   = 0.5     ;Tone
+
+*---------------------------------------------------------------------------
+*  AION “HALO”  –  Electro-Harmonix Big Muff Pi  (’73 Ram’s Head)
+*---------------------------------------------------------------------------
+
+***** SUPPLY & POWER FILTER ***********************************************
+*VRAW    9VRAW     0       DC 9
+VRAW    VCC       0       DC 9
+*D1      9VRAW     VA_IN   D1N5817         ; reverse-polarity guard (Schottky)
+*R24     VA_IN     VA      100             ; 100 Ω RC filter
+*C14     VA        0       100u            ; bulk reservoir
+*C15     VA        0       100n            ; HF bypass
+*.alias   VCC VA                                ; convenience name
+vin IN 0 SIN(0 0.05 500)
+
+***** INPUT & PULLDOWN ****************************************************
+RPD     IN        0       2.2Meg          ; input pulldown
+R2      IN        N1      33k
+C1      N1        B1      100n
+
+***** STAGE 1 *************************************************************
+*  Q1 common-emitter with feedback
+R3      B1        0       100k
+R4      C1N       B1      470k            ; feedback
+C2      C1N       B1      470p
+R5      E1        0       100             ; emitter
+R6      C1N       VCC     10k
+Q1      C1N       B1      E1      2N3904
+C3      C1N       SUS_TOP 100n
+
+***** STAGE 2 *************************************************************
+C4      SUS_W     CLIP_IN 100n
+R8      CLIP_IN   B2      10k
+R9      B2        0       100k
+R10     C2N       B2      470k
+Q2      C2N       B2      E2      2N3904
+R11     E2        0       100
+C5      C2N       B2      470p
+C6      B2       CLIP2_IN 100n
+D3      C2N      CLIP2_IN 1N914
+D2      CLIP2_IN  C2N     1N914
+R12     VCC      C2N      10k
+
+***** HARD-CLIPPING NODE **************************************************
+
+***** STAGE 3 *************************************************************
+C7      C2N       ST3IN   100n
+R13     ST3IN     B3      10k
+R14     B3        0       100k
+Q3      C3N       B3      E3      2N3904
+R15     B3        C3N     470k
+R16     E3        0       100
+C8      B3        C3N     470p
+C9      B3        CLIP3_IN 100n
+D4      CLIP3_IN  C3N      1N914
+D5      C3N       CLIP3_IN 1N914
+R17     C3N       VCC     10k
+
+***** STAGE 4 (OUTPUT BUFFER) *********************************************
+C12     TONE_W    B4      100n
+R20     VCC       B4      470k
+R21     B4        0       100k
+R23     E4        0       2.7k
+Q4      C4N       B4      E4      2N3904
+C13     C4N       VOL_TOP 100n
+R22     VCC       C4N     10k
+
+*****POTS*********
+*RSUS_T  SUS_TOP   SUS_W     50k
+*RSUS_B  SUS_W     RKM1      50k
+*R7      RKM1      0         560
+
+*RVOL_T  VOL_TOP   OUT       1
+*RVOL_B  OUT       0         100k
+
+*RTONE_T TONE_TOP TONE_W     50k
+*RTONE_B TONE_W   TONE_BOT   50k
+
+RSUS_T  SUS_TOP   SUS_W     {(1-P1_POS)*50k}
+RSUS_B  SUS_W     RKM1      {P1_POS*50k}
+R7      RKM1      0         560
+
+RVOL_T  VOL_TOP   OUT       {(1-P2_POS)*50k}
+RVOL_B  OUT       0         {P2_POS*50k}
+
+RTONE_T TONE_TOP TONE_W     {(1-P3_POS)*50k}
+RTONE_B TONE_W   TONE_BOT   {P3_POS*50k}
+
+***** BIG-MUFF TONE NETWORK ***********************************************
+* Mids switch: DPDT on-on-on    A-side = CX1 / C11  •  B-side = CX2 / C10
+*   1 = scoop  • 2 = flat  • 3 = hump                       (see Halo docs)
+C10     C3N       TONE_TOP   3.9n      ; high-pass branch cap
+**CX1     C3N       TONE_TOP   12n
+C11     TONE_BOT   0         12n       ; low-pass branch cap
+**CX2     TONE_BOT   0         3.9n
+R19     C3N       TONE_BOT  33k
+R18     TONE_TOP  0         33k
+
+* 100 kB TONE pot (centre = flat).  Wired full-CW here (1 Ω / 99 k ladder).
+
+***** OUTPUT VOLUME *******************************************************
+
+***** SUSTAIN (GAIN) POT **************************************************
+* In a Big Muff the 100 kB “Sustain” pot sits between the collectors of
+* stages 1 & 2; wired full-CW here.
+
+***** SMALL SHAPING CAPS **************************************************
+
+***** DEVICE MODELS *******************************************************
+*.model 2N3904 NPN (BF=200 IS=1e-15 VAF=80)
+.MODEL 2N3904 NPN (IS=6.734f Xti=3 Eg=1.11 Vaf=74.03 Bf=416.4 Ne=1.259 Ise=6.734 Ikf=66.78m Xtb=1.5 Br=.7371 Nc=2 Isc=0 Ikr=0 Rc=1 Cjc=3.638p Mjc=.3085 Vjc=.75 Fc=.5 Cje=4.493p Mje=.2593 Vje=.75 Tr=239.5n Tf=301.2p Itf=.4 Vtf=4 Xtf=2 Rb=10)
+*.model 1N914  D   (IS=2e-9 N=1.7 CJO=2p TT=6n)
+.model 1N914 D(Is=2.52n Rs=.568 N=1.752 Cjo=4p M=.4 tt=20n Iave=200m Vpk=75)
+.model D1N5817 D (IS=35u RS=0.05 N=1.2 CJO=110p TT=10n)
+
+*---------------------------------------------------------------------------
+*.control
+*  * quick sanity check
+*  * 100 mVp 1 kHz sine
+*  *vin IN 0 SIN(0 0.1 1k)*
+
+*  * comment the next two lines and uncomment the .ac if you’d rather sweep
+*  *tran 5u 100m
+*  tran 2u 100m 80m
+*  plot v(IN) v(OUT)*
+
+*  *ac dec 30 20 20k
+*.endc
+*.end
+
+.tran 2u 100m 80m
+.op
+.control
+  run
+  *plot v(IN) v(OUT)
+ ** plot v(OUT)
+ * plot db(OUT)
+ print OUT
+ quit
+.endc
+.end
