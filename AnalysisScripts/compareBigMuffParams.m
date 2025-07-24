@@ -1,6 +1,6 @@
 %compareBigMuffParams.m
 
-pdls = {'ElectroharmonixBiggMuffPiV3.cir'};
+pdls = {'ElectroharmonixBigMuffPiV3.cir'};
 
 T = combinations([0.02:0.48:0.98],[0.98],[0.02:0.48:0.98]);
 TT = T.Variables;
