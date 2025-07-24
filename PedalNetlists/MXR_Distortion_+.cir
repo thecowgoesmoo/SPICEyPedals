@@ -1,0 +1,23 @@
+* generated from MXR Distortion +.schx
+VV1 N1 N2 0
+CC1 N4 N3 1n
+RR1 N5 N2 10k
+RR2 N7 N6 1meg
+CC2 N6 N5 10n
+RR3 N11 N9 1meg
+RR4 N10 N12 4.7k
+RDrive N9 N10 1meg
+CC3 N12 N13 47n
+CC4 N11 N14 1u
+RR5 N15 N14 10k
+CC5 N16 N15 1n
+RS1 N20 N19 8
+DD1 N16 N15 1N34A
+DD2 N17 N15 1N34A
+.tran 2u 100m 80m
+.op
+.control
+  run
+  quit
+.endc
+.end

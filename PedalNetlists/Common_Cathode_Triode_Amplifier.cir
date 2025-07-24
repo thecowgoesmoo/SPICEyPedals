@@ -1,0 +1,19 @@
+* generated from Common Cathode Triode Amplifier.schx
+VV1 N1 N2 0
+CCi N3 N2 47n
+RRi N5 N4 1meg
+RRg N6 N3 70k
+CCf N11 N6 2.5p
+RRp N11 N10 100k
+RRk N8 N7 1.5k
+CCk N8 N7 25u
+CC1 N12 N11 100n
+RO1 N14 N12 8
+RR1 N12 N13 100k
+.tran 2u 100m 80m
+.op
+.control
+  run
+  quit
+.endc
+.end

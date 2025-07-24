@@ -1,0 +1,32 @@
+* generated from Pro Co Rat.schx
+VV1 N26 N1 0
+CC4 N4 N3 47u
+RR5 N5 N4 1k
+CC1 N3 N2 100p
+CC2 N9 N10 4.7u
+CC3 N8 N11 2.2u
+RR2 N2 N9 560
+RR3 N7 N8 47
+RR6 N12 N13 1.5k
+CC5 N14 N13 3.3n
+DD1 N5 N6 1N914
+DD2 N5 N6 1N914
+CC6 N15 N17 22n
+RR1 N16 N17 1meg
+RR7 N25 N26 1meg
+CC8 N22 N26 22n
+RR8 N23 N24 1meg
+RR9 N21 N22 1k
+CC9 N20 N21 1n
+RR4 N27 N28 10k
+CC7 N31 N30 1u
+RS1 N33 N34 8
+RDistortion N3 N7 100k
+RTone N12 N5 100k
+.tran 2u 100m 80m
+.op
+.control
+  run
+  quit
+.endc
+.end

@@ -1,0 +1,26 @@
+* generated from Ibanez Tube Screamer TS-9.schx
+VV1 N1 N2 0
+CC1 N4 N2 1u
+RR1 N4 N3 10k
+CCc N6 N5 51p
+CCz N7 N23 47n
+RR2 N5 N23 4.7k
+RR3 N22 N5 51k
+RDrive N6 N22 500k
+RR5 N10 N6 1k
+CC4 N11 N12 220n
+CC5 N13 N27 220n
+RR7 N13 N14 220
+RR8 N15 N26 1k
+CC6 N21 N15 1u
+RR11 N17 N18 10k
+RS1 N20 N19 8
+DD1 N8 N9 1N4148
+DD2 N6 N5 1N4148
+.tran 2u 100m 80m
+.op
+.control
+  run
+  quit
+.endc
+.end

@@ -1,0 +1,29 @@
+* generated from Boss Super Overdrive SD-1.schx
+VV1 N1 N25 0
+CC1 N19 N25 18n
+RR1 N2 N19 100k
+CCc N4 N3 47p
+CCz N5 N20 47n
+RR2 N3 N20 4.7k
+RR3 N18 N3 33k
+RDrive N4 N18 1meg
+RR5 N6 N4 10k
+CC4 N7 N8 18n
+CC5 N9 N24 27n
+RR7 N9 N10 470
+RR8 N11 N23 10k
+CC6 N17 N11 1u
+RR11 N13 N14 10k
+RS1 N16 N15 8
+RR10 N17 N26 4.7k
+CC3 N28 N27 10n
+DD1 N4 N3 1N916
+DD2 N29 N3 1N916
+DD3 N4 N29 1N916
+.tran 2u 100m 80m
+.op
+.control
+  run
+  quit
+.endc
+.end

@@ -1,0 +1,20 @@
+* generated from Op-Amp Model.schx
+VV1 N4 N3 0
+RR1 N5 N2 100
+RR2 N7 N6 10k
+DD1 N10 N1 D
+DD2 N1 N11 D
+RS1 N8 N7 8
+VV6 N10 N9 2
+VV7 N11 N12 2
+RRp1 N13 N1 1k
+CCp1 N13 N1 159u
+RRout N7 N14 100
+RRin N2 N3 1meg
+.tran 2u 100m 80m
+.op
+.control
+  run
+  quit
+.endc
+.end
