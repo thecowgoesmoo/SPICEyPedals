@@ -1,0 +1,18 @@
+* generated from Common Emitter Transistor Amplifier.schx
+VV1 N2 N1 0
+CCi N3 N1 47n
+RRi N4 N3 100k
+RRe N5 N11 22
+CCo N9 N6 470n
+RRc N6 N7 10k
+RRf N3 N6 470k
+CCf N6 N3 250p
+RO1 N8 N9 8
+RR1 N10 N9 100k
+.tran 2u 100m 80m
+.op
+.control
+  run
+  quit
+.endc
+.end

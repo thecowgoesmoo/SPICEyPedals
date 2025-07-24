@@ -1,0 +1,17 @@
+* generated from Wien Bridge Oscillator.schx
+RR1 N1 N2 1.49k
+CC1 N1 N3 100n
+RR2 N4 N5 1.49k
+CC2 N6 N5 100n
+RRf N7 N6 22k
+RRs1 N10 N7 800
+RRs2 N11 N10 10.5k
+VV3 N1 N12 0.01] V
+RS1 N13 N6 8
+.tran 2u 100m 80m
+.op
+.control
+  run
+  quit
+.endc
+.end

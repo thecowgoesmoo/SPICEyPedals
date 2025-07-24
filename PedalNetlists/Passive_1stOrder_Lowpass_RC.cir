@@ -1,0 +1,12 @@
+* generated from Passive 1stOrder Lowpass RC.schx
+VV1 N4 N1 0
+RR1 N2 N1 1k
+CC1 N5 N3 1u
+RO1 N2 N4 8
+.tran 2u 100m 80m
+.op
+.control
+  run
+  quit
+.endc
+.end

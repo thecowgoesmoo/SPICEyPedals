@@ -1,0 +1,15 @@
+* generated from Bridge Rectifier.schx
+RR2 N2 N1 100
+VV1 N1 N3 0
+RS1 N6 N7 8
+DD1 N6 N5 D
+DD2 N10 N11 D
+DD3 N9 N5 D
+DD4 N7 N8 D
+.tran 2u 100m 80m
+.op
+.control
+  run
+  quit
+.endc
+.end

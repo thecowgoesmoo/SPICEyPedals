@@ -1,0 +1,26 @@
+* generated from 59 Bassman Preamp+Tone Stack.schx
+CC1 N2 N1 250p
+CC2 N6 N4 20n
+CC3 N7 N4 20n
+RR1 N1 N4 56k
+RBass N5 N6 1meg
+RS1 N9 N8 8
+VV1 N10 N11 0
+RR2 N12 N11 1meg
+RR3 N13 N11 68k
+RR4 N14 N15 820
+CC4 N15 N14 250u
+RR5 N17 N19 100k
+CC5 N20 N17 20n
+RR7 N22 N21 270k
+CC6 N21 N30 100p
+RR8 N23 N24 820
+RR9 N26 N25 100k
+RR10 N28 N29 100k
+.tran 2u 100m 80m
+.op
+.control
+  run
+  quit
+.endc
+.end
