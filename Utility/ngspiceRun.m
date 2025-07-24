@@ -11,7 +11,14 @@ ctrlStgs = varargin{3};
 
 updateCirParams(fileName,ctrlStgs);
 
-sysStr = ['/opt/homebrew/bin/ngspice -b ' fileName ' > output.txt'];
-system(sysStr);
+execPath = getenv('NGSPICE_EXECUTABLE');
+if isempty(execPath)
+    execPath = 'ngspice';
+end
+sysStr = [execPath ' -b ' fileName ' > output.txt'];
+status = system(sysStr);
+if status ~= 0
+    error('ngspiceRun:Failed', 'Failed to execute ngspice command.');
+end
 
 out = readNgspiceOut('output.txt');
