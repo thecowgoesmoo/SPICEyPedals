@@ -5,7 +5,9 @@ function updateCirParams(filename,params)
 %Richard Moore
 %2025-07-13
 
-S = readlines(filename);
+% Octave does not provide readlines or writelines. Use fileread instead.
+S = strsplit(fileread(filename), {'\r','\n'})';
+S = S(~cellfun('isempty',S));
 %k = 1;
 k = 2;
 
@@ -19,4 +21,8 @@ while ~isempty(strfind(S{k},'.param'))
     k = k + 1;
 end
 
-writelines(S,filename);
+fid = fopen(filename, 'w');
+for lineIdx = 1:numel(S)
+    fprintf(fid, '%s\n', S{lineIdx});
+end
+fclose(fid);
