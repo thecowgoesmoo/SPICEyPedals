@@ -5,7 +5,7 @@ function out = readNgspiceOut(fileIn)
 fid = fopen(fileIn,'r');
 cl = fgetl(fid);
 
-while isempty(findstr(cl,'Transient Analysis'))
+while isempty(strfind(cl, 'Transient Analysis'))
 	cl = fgetl(fid);
 	%disp(cl);
 end
@@ -19,9 +19,9 @@ mOut = zeros(10000,3);
 %cl = ' ';
 cl = fgetl(fid);
 
-while (isstr(cl))
-	%disp(cl);
-	pOut = sscanf(cl,'%d\t%f\t%f');
+while ischar(cl)
+        %disp(cl);
+        pOut = sscanf(cl,'%d\t%f\t%f');
 	if ~isempty(pOut)
 		mOut(pOut(1),1) = pOut(1);%lInd;
 		mOut(pOut(1),2) = pOut(2);%t;
@@ -30,3 +30,5 @@ while (isstr(cl))
 	cl = fgetl(fid);
 end
 out = mOut;
+% ensure file handle is closed
+fclose(fid);
