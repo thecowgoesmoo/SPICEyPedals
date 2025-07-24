@@ -1,8 +1,6 @@
-
 .param    P1_POS   = 0.5   ;Volume
-.param    P2_POS   = 0.5   ;Sustain
-.param    P3_POS   = 0.5   ;Tone
-
+.param    P2_POS   = 0.7   ;Sustain
+.param    P3_POS   = 0.64   ;Tone
 .include "./PartModels/1N914.LIB"
 .model __RV2 potentiometer( r=100k position={P2_POS} )
 .model __Q4 NPN
@@ -11,7 +9,6 @@
 .model __Q1 NPN
 .model __Q3 NPN
 .model __RV3 potentiometer( r=100k position={P1_POS} )
-
 R17 RamsHead_Clip2 Net-_C11-Pad2_ 33k
 R18 GND Net-_C10-Pad1_ 33k
 R20 GND Net-_Q4-B_ 100k
@@ -58,10 +55,8 @@ ARV3 GND Rams_Head_Out Net-_C13-Pad2_ __RV3
 R1 Net-_C1-Pad1_ Input 33k
 C2 RamsHead_Boost Net-_Q1-B_ 470p
 R4 RamsHead_Boost VCC 12k
-
 V1 VCC GND DC 9 
 V2 Input GND DC 0 SIN( 0 50m 500 0 0 0 ) AC 1  
-
 .tran 2u 100m 80m
 .op
 .control

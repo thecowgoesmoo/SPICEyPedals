@@ -1,28 +1,24 @@
 
-.param    P1_POS   = 0.5   ;Sweep
-.param    P2_POS   = 0.5   ;Distortion
+.param    P1_POS   = 0.9   ;Other
+.param    P2_POS   = 0.9   ;Distortion
 .param    MODE   = 1        ;Clip mode
-.param    P3_POS   = 0.5   ;Filter
-.param    P4_POS   = 0.5   ;Output volume
-
+.param    P3_POS   = 1   ;Filter
+.param    P4_POS   = 0.9   ;Output volume
 ****************  GLOBAL SOURCES  ******************************************
 VCC       VCC      0            DC 9
 VIN       IN       0            SIN(0 50m 500)
-
 ****************  VIRTUAL HALF‑SUPPLY  *************************************
 R10       VCC      VB           100k
 R11       VB       0            100k
 C13       VB       0            47u
 C11       VCC      0            100u
 C12       VCC      0            100n
-
 ****************  INPUT / PRE‑FILTER  **************************************
 RPD       IN       0            2.2Meg
 C1        IN       NIN          22n
 R1        NIN      VB           1Meg
 R2        NIN      AP1_Y        1k
 C2        AP1_Y    0            1n
-
 ****************  SWEEP  (P1 – 1 kB)  **************************************
 *.param    P1_POS   = 0.50
 R3        AN1_Y    P1_A         47
@@ -30,7 +26,6 @@ RP1_A     P1_A     P1_W         {1k * P1_POS}
 RP1_B     P1_W     P1_B         {1k * (1-P1_POS)}
 RSHORT_P1 P1_B     P1_W         1u
 C5        P1_B     0            2.2u
-
 ****************  OP‑AMP GAIN NETWORK  *************************************
 R4        AN1_Y    NRKM1            560
 C6        NRKM1    0            4.7u
@@ -41,18 +36,15 @@ RP2_A     AN1_Y    AO1_Y         {100k * P2_POS}
 C4        AN1_Y    AO1_Y        100p
 *XU1       AP1_Y    AN1_Y        AO1_Y      OP07      ;library subckt
 XU1       AP1_Y    AN1_Y    VCC   0    AO1_Y      OP07      ;library subckt
-
 ****************  CLIPPING & MODE SWITCH  **********************************
 C7        AO1_Y    CLIP_IN      4.7u
 C14       AO1_Y    CLIP_IN      1u
 R5        CLIP_IN  CLIP_SW      1k
-
 *.param    MODE   = 1
 BVCTL1    VCTL1    0            V={MODE}
 BVCTL2    VCTL2    0            V={1-MODE}
 S_MODE1   CLIP_SW  CLIP_CENT    VCTL1 0 SWMOD
 S_MODE2   CLIP_SW  CLIP_PAIR    VCTL2 0 SWMOD
-
 *diode arrays
 D2        CLIP_PAIR 0           D1N914
 D3        0         CLIP_PAIR   D1N914
@@ -65,38 +57,31 @@ D9        0         CLIP_CENT   D1N914
 *rkmoore checked to here.  
 ****************  FILTER  (P3 – 100 kA)  ***********************************
 *.param    P3_POS   = 0.50
-
 *rkmoore: Is this next section hard-coded to the second switch position?
 *left lug (P3_A) is CLIP_CENT, right lug (P3_B) feeds R6; wiper is P3_W.
 RP3_A     CLIP_CENT P3_W        {100k * P3_POS}
 RP3_B     P3_W      P3_B        {100k * (1-P3_POS)}
 RSHORT_P3 CLIP_CENT P3_W        1u              ;lug‑3 ↔ wiper short as per PCB
-
 R6        P3_B     BUF_IN       1.5k
 C8        BUF_IN   0            3.3n
 C9        BUF_IN   G1           22n
 *R7        BUF_IN   0            1Meg
 R7        G1       0            1Meg
-
 ****************  J‑FET OUTPUT BUFFER  *************************************
 *Q1        D1       G1       S1      J2N5457      ;D G S
 J1        D1       G1       S1      J2N5457      ;D G S
 RD1       D1       VCC          1u               ;wire Drain → VCC
 R8        S1       0            10k
 C10       S1       VOUT_IN      1u
-
 ****************  VOLUME  (P4 – 100 kA)  ***********************************
 *.param    P4_POS   = 0.75
 RP4_A     VOUT_IN  P4_W         {100k * P4_POS}
 RP4_B     P4_W     0            {100k * (1-P4_POS)}
 R_ALIAS   OUT      P4_W         1u               ;OUT node alias
-
 ****************  ANALYSES  ************************************************
 *.op
 *.tran     0 20m 0 10u
 *.tran     2u 100m 80m
-
-
 ****************  MODELS  (alphabetical)  **********************************
 .model    D1N914  D
 .model    J2N5457 NJF(Beta=1.72m Vto=-2.03 Lambda=50m Rs=1 Rd=1)
@@ -106,10 +91,8 @@ EGAIN  7 0  1 2 1e6
 Rout   6 7  10
 Cout   7 0  1p
 .ends  IDEALOPAMP
-
 ****************  LIBRARIES  ***********************************************
 *.include  OP07.cir          *adjust path to ngspice/examples if needed
-
 * 
 * Linear Technology OP07 op amp model
 * Written: 08-24-1989 12:35:59 Type: Bipolar npn input, internal comp.
@@ -201,7 +184,6 @@ dsub 4  7  dm2
 **  plot v(IN) v(OUT)
 **.endc
 **.end
-
 .tran 2u 100m 80m
 .op
 .control

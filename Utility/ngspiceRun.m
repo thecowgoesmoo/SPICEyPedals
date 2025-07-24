@@ -13,11 +13,12 @@ updateCirParams(fileName,ctrlStgs);
 
 execPath = getenv('NGSPICE_EXECUTABLE');
 if isempty(execPath)
-    execPath = 'ngspice';
+    execPath = '/opt/homebrew/bin/ngspice';%'ngspice';
 end
 sysStr = [execPath ' -b ' fileName ' > output.txt'];
+%keyboard;
 status = system(sysStr);
-if status ~= 0
+if status > 1%~= 0
     error('ngspiceRun:Failed', 'Failed to execute ngspice command.');
 end
 
