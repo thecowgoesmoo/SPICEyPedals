@@ -1,0 +1,123 @@
+
+.param    P1_POS   = 0.9      ;Gain
+.param    P2_POS   = 0.9      ;Tone
+.param    P3_POS   = 0.9      ;Volume
+.include "./PartModels/TL072.301"
+
+* generated from Marshall Blues Breaker.schx
+
+****************  GLOBAL SOURCES  ******************************************
+VCC       VCC      0            DC 9
+VIN       IN       0            SIN(0 50m 500)
+
+****************  VIRTUAL HALF‑SUPPLY  *************************************
+R10       VCC      VB           10k
+R11       VB       0            10k
+C13       VB       0            47u
+C11       VCC      0            100u
+C12       VCC      0            100n
+
+****************  Potentiometers  ******************************************
+RP1_A     N9       N8          {100k * (1-P1_POS)}        ;Gain pot top
+RP1_B     N8       N55         {100k * P1_POS}            ;Gain pot bottom
+RP2_A     N24      N21         {25k * (1-P2_POS)}         ;Tone pot top
+RP2_B     N21      N19         {25k * P2_POS}             ;Tone pot bottom
+RP3_A     N99      OUT         {100k * (1-P3_POS)}        ;Volume pot top
+RP3_B     OUT      0           {100k * P3_POS}            ;Volume pot bottom
+
+****************  OP AMPS  *************************************************
+*XU1       N6    N5     VCC   0    N8       OP07      ;first op amp stage, library subckt
+*XU2       VB    N11    VCC   0    N14      OP07      ;second op amp stage, library subckt
+XU1       N6    N5     VCC   0    N8       TL072      ;first op amp stage, library subckt
+XU2       VB    N11    VCC   0    N14      TL072      ;second op amp stage, library subckt
+
+****************  Passives and diodes  *************************************
+RR1 N6 VB 1meg      ;
+CC1 N6 IN 10n       ;
+RR2 N5 N3 33k       ;
+CC2 N3 N4 10n       ;
+CC3 0  N4 10n       ;
+RR3 N5 N4 27k       ;
+CC4 N8 N5 100p      ;
+RR99 N5 N55 470k    ;
+RR98 N10 VB 1meg    ;
+CC5 N10 N9 100n     ;
+RR4 N11 N10 10k     ;
+RR5 N11 N25 6.8k    ;
+RR6 N14 N11 220k    ;
+CC99 N14 N11 10p    ;
+RR8 IN  0   2.2meg  ;
+RR7 N14 N24 1k      ;
+CC6 VB N19 10n      ;
+CC7 VB N22 10n      ;
+RR9 N21 N22 6.8k    ;R11, Series with FB clipping
+CC98 N22 N99 1u
+DD1 N25 N12 D4148  ;FB clipping
+DD2 N12 N14 D4148  ;FB clipping
+DD3 N14 N26 D4148  ;FB clipping
+DD4 N26 N25 D4148  ;FB clipping
+
+****************  MODELS  (alphabetical)  **********************************
+.model    SWMOD   SW(Ron=0.1 Roff=1e9 Vt=0.5 Vh=0.1)
+.model D4148   D(IS=2.52e-9 N=1.72 Rs=0.568 Cjo=2pF M=0.333 Vj=0.75 Xti=3)
+.subckt IDEALOPAMP 1 2 6         ; +, –, out
+EGAIN  7 0  1 2 1e6
+Rout   6 7  10
+Cout   7 0  1p
+.ends  IDEALOPAMP
+
+* Connections: + - V+V-O 
+.subckt OP07 3 2 7 4 6
+* input
+rc1 7  80 8.842E+03
+rc2 7  90 8.842E+03
+q1  80 102 10 qm1 
+q2  90 103 11 qm2 
+rb1  2   102 5.000E+02
+rb2  3   103 5.000E+02
+ddm1 102 104 dm2 
+ddm3 104 103 dm2 
+ddm2 103 105 dm2 
+ddm4 105 102 dm2 
+c1  80 90 5.460E-12
+re1 10 12 1.948E+03
+re2 11 12 1.948E+03
+iee 12 4  7.502E-06
+re  12 0  2.666E+07
+ce  12 0  1.579E-12
+* intermediate 
+gcm 0  8  12 0  5.668E-11
+ga  8  0  80 90 1.131E-04
+r2  8  0  1.000E+05
+c2  1  8  3.000E-11
+gb  1  0  8  0  1.294E+03
+* output 
+ro1 1  6  2.575E+01
+ro2 1  0  3.425E+01
+rc  17 0  6.634E-06
+gc  0  17 6  0  1.507E+05
+d1  1  17 dm1 
+d2  17 1  dm1 
+d3  6  13 dm2 
+d4  14 6  dm2 
+vc  7  13 2.803E+00
+ve  14 4  2.803E+00
+ip  7  4  2.492E-03
+dsub 4  7  dm2 
+* models 
+.model qm1 npn (is=8.000E-16 bf=3.125E+03)
+.model qm2 npn (is=8.009E-16 bf=4.688E+03)
+.model dm1 d   (is=1.486E-08)
+.model dm2 d   (is=8.000E-16)
+.ends OP07
+
+****************  Simulation instructions  **********************************
+.tran 2u 100m 80m
+.op
+.control
+  run
+  print OUT
+*  plot v(IN) v(OUT)
+  quit
+.endc
+.end
