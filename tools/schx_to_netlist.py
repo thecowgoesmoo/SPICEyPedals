@@ -8,6 +8,7 @@ import re
 BASE_DIR = os.path.join(os.path.dirname(__file__), '..')
 SCHEM_DIR = os.path.join(BASE_DIR, 'SchemToImport', 'Examples')
 OUT_DIR = os.path.join(BASE_DIR, 'PedalNetlists')
+MODELS_DIR = os.path.join(BASE_DIR, 'PartModels')
 
 UNIT_MAP = {
     'Ω': '', 'kΩ': 'k', 'MΩ': 'meg',
@@ -16,6 +17,23 @@ UNIT_MAP = {
     'V': '', 'A': '', 'mA': 'mA', 'uA': 'uA', 'nA': 'nA'
 }
 FLOAT_RE = re.compile(r'([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)')
+
+def sanitize(name: str) -> str:
+    """Convert schematic names into safe SPICE identifiers."""
+    return re.sub(r'\W+', '_', name)
+
+def float_value(text: str) -> float | None:
+    """Return the numeric portion of a value string as a float."""
+    val = parse_value(text)
+    if val is None:
+        return None
+    m = FLOAT_RE.search(val)
+    if not m:
+        return None
+    try:
+        return float(m.group(1))
+    except ValueError:
+        return None
 
 def parse_value(text: str) -> str | None:
     text = text.replace('µ', 'u')
@@ -59,10 +77,10 @@ def collect_net_ids(wires):
         return net_ids[uf.find(pt)]
     return node
 
-def symbol_pins(pos, points):
+def symbol_pins(pos, points, radius=35):
+    """Return all wire points within *radius* of *pos*"""
     px, py = pos
-    d = min(math.hypot(px - x, py - y) for x, y in points)
-    return [p for p in points if abs(math.hypot(px - p[0], py - p[1]) - d) < 1e-6]
+    return [p for p in points if math.hypot(px - p[0], py - p[1]) <= radius]
 
 def process_file(path):
     root = ET.parse(path).getroot()
@@ -82,39 +100,105 @@ def process_file(path):
     node_of = collect_net_ids(wires)
     points = list({pt for w in wires for pt in w})
 
+    # map of numerical node -> named node
+    aliases: dict[int, str] = {}
+    rails: dict[str, str] = {}
+
+    # first identify ground and rail nets
+    for sym in symbols:
+        stype = sym['type']
+        pins = symbol_pins(sym['pos'], points)
+        nets = sorted({node_of(p) for p in pins})
+        attrs = sym['attrs']
+
+        if 'Ground' in stype:
+            for n in nets:
+                aliases[n] = '0'
+        elif 'Rail' in stype:
+            val = attrs.get('Voltage', '0')
+            v = float_value(val) or 0.0
+            name = 'VCC' if abs(v - 9) < 0.2 else 'VB' if abs(v - 4.5) < 0.2 else '0' if abs(v) < 1e-6 else None
+            if name:
+                for n in nets:
+                    aliases[n] = name
+                rails[name] = parse_value(val) or '0'
+
+    # determine input node name
+    input_net = None
+    for sym in symbols:
+        if 'Input' in sym['type']:
+            pins = symbol_pins(sym['pos'], points)
+            nets = sorted({node_of(p) for p in pins})
+            for n in nets:
+                if aliases.get(n) != '0':
+                    aliases[n] = 'IN'
+                    input_net = n
+            break
+
+    def node(n: int) -> str:
+        return aliases.get(n, f'N{n}')
+
     elements = []
     params = []
+    includes = set()
+
     for sym in symbols:
         pins = symbol_pins(sym['pos'], points)
-        nets = [node_of(p) for p in pins]
+        nets = sorted({node_of(p) for p in pins})
         attrs = sym['attrs']
-        name = attrs.get('Name', 'X')
+        name = sanitize(attrs.get('Name', 'X'))
         stype = sym['type']
-        if 'Resistor' in stype and len(nets) == 2:
+
+        if 'Potentiometer' in stype and len(nets) == 3:
+            pname = f"P_{name}"
+            params.append(f".param {pname} = {attrs.get('Wipe', '0.5')}")
+            r = parse_value(attrs.get('Resistance', '100k'))
+            elements.append(f"R{name}A {node(nets[0])} {node(nets[1])} {{{r} * (1-{pname})}}")
+            elements.append(f"R{name}B {node(nets[1])} {node(nets[2])} {{{r} * {pname}}}")
+        elif 'VariableResistor' in stype and len(nets) >= 2:
+            pname = f"P_{name}"
+            params.append(f".param {pname} = {attrs.get('Wipe', '0.5')}")
+            r = parse_value(attrs.get('Resistance', '1k'))
+            elements.append(f"R{name} {node(nets[0])} {node(nets[1])} {{{r} * {pname}}}")
+        elif 'Resistor' in stype and len(nets) == 2:
             val = parse_value(attrs.get('Resistance', '1k'))
-            elements.append(f"R{name} N{nets[0]} N{nets[1]} {val}")
+            elements.append(f"R{name} {node(nets[0])} {node(nets[1])} {val}")
         elif 'Capacitor' in stype and len(nets) == 2:
             val = parse_value(attrs.get('Capacitance', '1u'))
-            elements.append(f"C{name} N{nets[0]} N{nets[1]} {val}")
-        elif ('VoltageSource' in stype or 'Input' in stype or 'Rail' in stype) and len(nets) >= 2:
+            elements.append(f"C{name} {node(nets[0])} {node(nets[1])} {val}")
+        elif 'VoltageSource' in stype and len(nets) >= 2:
             val = parse_value(attrs.get('Voltage', '0')) or '0'
-            elements.append(f"V{name} N{nets[0]} N{nets[1]} {val}")
+            elements.append(f"V{name} {node(nets[0])} {node(nets[1])} {val}")
         elif 'Diode' in stype and len(nets) == 2:
             model = attrs.get('PartNumber', 'D')
-            elements.append(f"D{name} N{nets[0]} N{nets[1]} {model}")
+            elements.append(f"D{name} {node(nets[0])} {node(nets[1])} {model}")
         elif 'BipolarJunctionTransistor' in stype and len(nets) == 3:
             model = attrs.get('PartNumber', 'Q')
-            elements.append(f"Q{name} N{nets[0]} N{nets[1]} N{nets[2]} {model}")
+            elements.append(f"Q{name} {node(nets[0])} {node(nets[1])} {node(nets[2])} {model}")
         elif 'Speaker' in stype and len(nets) == 2:
-            elements.append(f"R{name} N{nets[0]} N{nets[1]} 8")
-        elif 'Potentiometer' in stype and len(nets) == 3:
-            pos_param = f"P_{name}"
-            params.append(f".param {pos_param} = {attrs.get('Wipe', '0.5')}")
-            r = parse_value(attrs.get('Resistance', '100k'))
-            elements.append(f"R{name}a N{nets[0]} N{nets[1]} {r}")
-            elements.append(f"R{name}b N{nets[1]} N{nets[2]} {r}")
+            elements.append(f"R{name} {node(nets[0])} {node(nets[1])} 8")
 
-    header = ['* generated from ' + os.path.basename(path)] + params
+        # look for matching model file
+        pn = attrs.get('PartNumber')
+        if pn:
+            for ext in ('.301', '.lib', '.LIB', '.sub', '.SUB', '.cir', '.mod', '.MOD'):
+                fpath = os.path.join(MODELS_DIR, pn + ext)
+                if os.path.exists(fpath):
+                    includes.add(f".include \"{fpath}\"")
+                    break
+
+    header = []
+    header.extend(params)
+    header.extend(sorted(includes))
+    header.append(f"* generated from {os.path.basename(path)}")
+
+    globalsrc = []
+    if 'VCC' in rails:
+        globalsrc.append(f"VCC VCC 0 DC {rails['VCC']}")
+    else:
+        globalsrc.append("VCC VCC 0 DC 9")
+    globalsrc.append("VIN IN 0 SIN(0 50m 500)")
+
     footer = [
         '.tran 2u 100m 80m',
         '.op',
@@ -124,7 +208,9 @@ def process_file(path):
         '.endc',
         '.end'
     ]
-    return '\n'.join(header + elements + footer) + '\n'
+
+    lines = header + globalsrc + elements + footer
+    return '\n'.join(lines) + '\n'
 
 def main():
     for fname in os.listdir(SCHEM_DIR):
