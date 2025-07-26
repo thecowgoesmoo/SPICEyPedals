@@ -1,22 +1,32 @@
+.param P_Treble = 0.5
+.param P_Bass = 0.5
+.param P_Mid = 0.5
+.param P_Volume = 0.5
 * generated from 59 Bassman Preamp+Tone Stack.schx
-CC1 N2 N1 250p
-CC2 N6 N4 20n
-CC3 N7 N4 20n
+VCC VCC 0 DC 9
+VIN IN 0 SIN(0 50m 500)
+CC1 N1 N2 250p
+CC2 N4 N6 20n
+CC3 N4 N7 20n
 RR1 N1 N4 56k
-RBass N5 N6 1meg
-RS1 N9 N8 8
-VV1 N10 N11 0
-RR2 N12 N11 1meg
-RR3 N13 N11 68k
+RTrebleA N2 N6 {250k * (1-P_Treble)}
+RTrebleB N6 N8 {250k * P_Treble}
+RBass N5 N6 {1meg * P_Bass}
+RMidA 0 N5 {25k * (1-P_Mid)}
+RMidB N5 N7 {25k * P_Mid}
+RS1 N8 0 8
+RR2 IN 0 1meg
+RR3 IN N13 68k
 RR4 N14 N15 820
-CC4 N15 N14 250u
+CC4 N14 N15 250u
 RR5 N17 N19 100k
-CC5 N20 N17 20n
-RR7 N22 N21 270k
+RVolumeA 0 N20 {1meg * (1-P_Volume)}
+RVolumeB N20 N21 {1meg * P_Volume}
+CC5 N17 N20 20n
+RR7 N21 N22 270k
 CC6 N21 N30 100p
-RR8 N23 N24 820
-RR9 N26 N25 100k
-RR10 N28 N29 100k
+RR8 N23 0 820
+RR9 N25 N26 100k
 .tran 2u 100m 80m
 .op
 .control

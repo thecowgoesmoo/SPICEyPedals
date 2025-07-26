@@ -1,8 +1,9 @@
 * generated from Passive 1stOrder Lowpass RC.schx
-VV1 N4 N1 0
-RR1 N2 N1 1k
-CC1 N5 N3 1u
-RO1 N2 N4 8
+VCC VCC 0 DC 9
+VIN IN 0 SIN(0 50m 500)
+RR1 IN N2 1k
+CC1 N3 N5 1u
+RO1 N2 IN 8
 .tran 2u 100m 80m
 .op
 .control
