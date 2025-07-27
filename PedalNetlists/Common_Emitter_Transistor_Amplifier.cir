@@ -1,3 +1,4 @@
+.include "/workspace/SPICEyPedals/tools/../PartModels/MicroCap-LIBRARY-for-ngspice/On_Semi.lib"
 * generated from Common Emitter Transistor Amplifier.schx
 VCC VCC 0 DC 9
 VIN IN 0 SIN(0 50m 500)
@@ -10,7 +11,7 @@ RRf N3 N6 470k
 CCf N3 N6 250p
 RO1 0 N9 8
 RR1 N9 0 100k
-QQ1 N3 N6 N11 Q
+QQ1 N3 N6 N11 Q2N2222 ; default 2N2222
 .tran 2u 100m 80m
 .op
 .control

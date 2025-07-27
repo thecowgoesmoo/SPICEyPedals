@@ -1,6 +1,7 @@
 .param P_Trimmer = 0.5
 .param P_Speed = 0.5
 .include "/workspace/SPICEyPedals/tools/../PartModels/MicroCap-LIBRARY-for-ngspice/On_Semi.lib"
+.include "/workspace/SPICEyPedals/tools/../PartModels/modelos_subckt/ti/tl072.mod"
 * generated from MXR Phase 90.schx
 VCC VCC 0 DC 9
 VIN IN 0 SIN(0 50m 500)

@@ -115,6 +115,16 @@ def default_part_for(stype: str, attrs: dict) -> str | None:
         return DEFAULT_PARTS['jfet_p'] if typ.startswith('P') else DEFAULT_PARTS['jfet_n']
     return None
 
+GENERIC_PARTS = {
+    '', 'D', 'Q', 'NPN', 'PNP', 'FET', 'JFET', 'MOSFET', 'NMOS', 'PMOS',
+    'MOS', 'OPAMP', 'OP-AMP', 'OP_AMP'
+}
+
+def is_unspecified(part: str | None) -> bool:
+    if not part:
+        return True
+    return part.upper() in GENERIC_PARTS
+
 class UnionFind:
     def __init__(self):
         self.parent = {}
@@ -222,7 +232,7 @@ def process_file(path):
         if model_info:
             includes.add(f".include \"{model_info[0]}\"")
             model_name = model_info[1]
-        else:
+        elif is_unspecified(specified):
             default = default_part_for(stype, attrs)
             if default:
                 info = find_model(default)
@@ -231,8 +241,7 @@ def process_file(path):
                     model_name = info[1]
                 else:
                     model_name = default
-                if not specified:
-                    comment = f" ; default {default}"
+                comment = f" ; default {default}"
 
         if 'Potentiometer' in stype and len(nets) == 3:
             pname = f"P_{name}"
