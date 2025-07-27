@@ -2,6 +2,7 @@
 .param P_Tone = 1
 .param P_Level = 0.5
 .include "/workspace/SPICEyPedals/tools/../PartModels/modelos_subckt/Diode_BJT_FET/GenSemi/GSdevices.lb5"
+.include "/workspace/SPICEyPedals/tools/../PartModels/modelos_subckt/ti/tl072.mod"
 * generated from Ibanez Tube Screamer TS-9.schx
 VCC VCC 0 DC 9
 VIN IN 0 SIN(0 50m 500)

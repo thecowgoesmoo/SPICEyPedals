@@ -1,12 +1,13 @@
+.include "/workspace/SPICEyPedals/tools/../PartModels/modelos_subckt/Diode_BJT_FET/GenSemi/GSdevices.lb5"
 * generated from Bridge Rectifier.schx
 VCC VCC 0 DC 9
 VIN IN 0 SIN(0 50m 500)
 RR2 IN N2 100
 RS1 0 N7 8
-DD1 N5 0 D
-DD2 N10 N11 D
-DD3 N5 N9 D
-DD4 N7 N8 D
+DD1 N5 0 d1n4148ws ; default 1N4148
+DD2 N10 N11 d1n4148ws ; default 1N4148
+DD3 N5 N9 d1n4148ws ; default 1N4148
+DD4 N7 N8 d1n4148ws ; default 1N4148
 .tran 2u 100m 80m
 .op
 .control

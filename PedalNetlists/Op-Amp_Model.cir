@@ -1,10 +1,11 @@
+.include "/workspace/SPICEyPedals/tools/../PartModels/modelos_subckt/Diode_BJT_FET/GenSemi/GSdevices.lb5"
 * generated from Op-Amp Model.schx
 VCC VCC 0 DC 9
 VIN IN 0 SIN(0 50m 500)
 RR1 N2 0 100
 RR2 N6 N7 10k
-DD1 N1 N10 D
-DD2 N1 N11 D
+DD1 N1 N10 d1n4148ws ; default 1N4148
+DD2 N1 N11 d1n4148ws ; default 1N4148
 RS1 N7 0 8
 VV6 N9 N10 2
 VV7 N11 N12 2
