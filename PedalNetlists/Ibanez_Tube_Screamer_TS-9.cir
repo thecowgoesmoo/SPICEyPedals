@@ -1,22 +1,30 @@
+.param P_Drive = 0.1
+.param P_Tone = 1
+.param P_Level = 0.5
 * generated from Ibanez Tube Screamer TS-9.schx
-VV1 N1 N2 0
-CC1 N4 N2 1u
-RR1 N4 N3 10k
-CCc N6 N5 51p
-CCz N7 N23 47n
+VCC VCC 0 DC 9
+VIN IN 0 SIN(0 50m 500)
+CC1 IN N4 1u
+RR1 VB N4 10k
+CCc N5 N6 51p
+CCz 0 N23 47n
 RR2 N5 N23 4.7k
-RR3 N22 N5 51k
-RDrive N6 N22 500k
-RR5 N10 N6 1k
-CC4 N11 N12 220n
+RR3 N5 N22 51k
+RDrive N6 N22 {500k * P_Drive}
+RR5 N6 N10 1k
+CC4 N11 0 220n
+RToneA N25 N26 {10k * (1-P_Tone)}
+RToneB N26 N27 {10k * P_Tone}
 CC5 N13 N27 220n
-RR7 N13 N14 220
+RR7 N13 0 220
 RR8 N15 N26 1k
-CC6 N21 N15 1u
-RR11 N17 N18 10k
-RS1 N20 N19 8
+CC6 N15 N21 1u
+RLevelA 0 N20 {100k * (1-P_Level)}
+RLevelB N20 N21 {100k * P_Level}
+RR11 N17 VB 10k
+RS1 0 N20 8
 DD1 N8 N9 1N4148
-DD2 N6 N5 1N4148
+DD2 N5 N6 1N4148
 .tran 2u 100m 80m
 .op
 .control
