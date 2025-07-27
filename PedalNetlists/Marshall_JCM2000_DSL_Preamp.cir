@@ -2,6 +2,8 @@
 .param P_Middle = 0.5
 .param P_Treble = 0.5
 .param P_Volume = 0.5
+.include "/workspace/SPICEyPedals/tools/../PartModels/MicroCap-LIBRARY-for-ngspice/On_Semi.lib"
+.include "/workspace/SPICEyPedals/tools/../PartModels/MicroCap-LIBRARY-for-ngspice/zetex.lib"
 * generated from Marshall JCM2000 DSL Preamp.schx
 VCC VCC 0 DC 9
 VIN IN 0 SIN(0 50m 500)
@@ -22,6 +24,7 @@ RR17 0 N3 470k
 CC10 N3 N44 1n
 CC11 N3 N18 470p
 RR5 0 N4 470k
+XOD1_OD2 0 N21 N45 NCP4326_Channel_X_Channel1_S5
 CC1 N6 N21 1u
 RR13 0 N44 47k
 RR8 N3 N45 150k

@@ -1,4 +1,5 @@
 .param P_Rs1 = 0.5
+.include "/workspace/SPICEyPedals/tools/../PartModels/MicroCap-LIBRARY-for-ngspice/UA741.MOD"
 * generated from Wien Bridge Oscillator.schx
 VCC VCC 0 DC 9
 VIN IN 0 SIN(0 50m 500)
@@ -11,6 +12,7 @@ RRs1 N7 N10 {800 * P_Rs1}
 RRs2 N10 0 10.5k
 VV3 N1 0 0.01] V
 RS1 N6 0 8
+XX1 N2 N6 N7 VCC N9 UA741
 .tran 2u 100m 80m
 .op
 .control

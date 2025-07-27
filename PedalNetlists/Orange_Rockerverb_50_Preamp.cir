@@ -3,6 +3,7 @@
 .param P_Treble = 0.5
 .param P_Volume = 0.5
 .param P_Gain1 = 0.6
+.include "/workspace/SPICEyPedals/tools/../PartModels/MicroCap-LIBRARY-for-ngspice/zetex.lib"
 * generated from Orange Rockerverb 50 Preamp.schx
 VCC VCC 0 DC 9
 VIN IN 0 SIN(0 50m 500)
