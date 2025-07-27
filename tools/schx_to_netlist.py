@@ -48,6 +48,16 @@ def _load_index(fname: str):
 MODEL_ENTRIES = _load_index(MODEL_INDEX)
 SUBCKT_ENTRIES = _load_index(SUBCKT_INDEX)
 
+# default parts used when schematics omit a specific part number
+DEFAULT_PARTS = {
+    'opamp': 'TL072',
+    'diode': '1N4148',
+    'bjt_npn': '2N2222',
+    'bjt_pnp': '2N3906',
+    'jfet_n': '2N5457',
+    'jfet_p': '2N5461',
+}
+
 def find_model(part: str):
     """Return (path, name, is_subckt) for *part* if present in indices."""
     if not part:
@@ -90,6 +100,20 @@ def parse_value(text: str) -> str | None:
     if unit in UNIT_MAP:
         unit = UNIT_MAP[unit]
     return f"{number}{unit}"
+
+def default_part_for(stype: str, attrs: dict) -> str | None:
+    """Return default part name for a schematic element type."""
+    if 'OpAmp' in stype:
+        return DEFAULT_PARTS['opamp']
+    if 'Diode' in stype:
+        return DEFAULT_PARTS['diode']
+    if 'BipolarJunctionTransistor' in stype:
+        typ = attrs.get('Type', '').upper()
+        return DEFAULT_PARTS['bjt_pnp'] if typ.startswith('P') else DEFAULT_PARTS['bjt_npn']
+    if 'FieldEffectTransistor' in stype:
+        typ = attrs.get('Type', '').upper()
+        return DEFAULT_PARTS['jfet_p'] if typ.startswith('P') else DEFAULT_PARTS['jfet_n']
+    return None
 
 class UnionFind:
     def __init__(self):
@@ -191,11 +215,24 @@ def process_file(path):
         attrs = sym['attrs']
         name = sanitize(attrs.get('Name', 'X'))
         stype = sym['type']
-        model_info = find_model(attrs.get('PartNumber'))
-        model_name = attrs.get('PartNumber')
+        specified = attrs.get('PartNumber')
+        model_info = find_model(specified)
+        model_name = specified
+        comment = ''
         if model_info:
             includes.add(f".include \"{model_info[0]}\"")
             model_name = model_info[1]
+        else:
+            default = default_part_for(stype, attrs)
+            if default:
+                info = find_model(default)
+                if info:
+                    includes.add(f".include \"{info[0]}\"")
+                    model_name = info[1]
+                else:
+                    model_name = default
+                if not specified:
+                    comment = f" ; default {default}"
 
         if 'Potentiometer' in stype and len(nets) == 3:
             pname = f"P_{name}"
@@ -219,23 +256,23 @@ def process_file(path):
             elements.append(f"V{name} {node(nets[0])} {node(nets[1])} {val}")
         elif 'Diode' in stype and len(nets) == 2:
             model = model_name or 'D'
-            elements.append(f"D{name} {node(nets[0])} {node(nets[1])} {model}")
+            elements.append(f"D{name} {node(nets[0])} {node(nets[1])} {model}{comment}")
         elif 'BipolarJunctionTransistor' in stype and len(nets) >= 3:
             model = model_name or 'Q'
             pins = [node(n) for n in nets[:3]]
-            elements.append(f"Q{name} {' '.join(pins)} {model}")
+            elements.append(f"Q{name} {' '.join(pins)} {model}{comment}")
         elif 'FieldEffectTransistor' in stype and len(nets) >= 3:
             model = model_name or 'JFET'
             pins = [node(n) for n in nets[:3]]
-            elements.append(f"J{name} {' '.join(pins)} {model}")
+            elements.append(f"J{name} {' '.join(pins)} {model}{comment}")
         elif any(t in stype for t in ['MOSFET', 'MOS', 'NMOS', 'PMOS']) and len(nets) >= 4:
             model = model_name or 'MOS'
             pins = [node(n) for n in nets[:4]]
-            elements.append(f"M{name} {' '.join(pins)} {model}")
+            elements.append(f"M{name} {' '.join(pins)} {model}{comment}")
         elif 'OpAmp' in stype and len(nets) >= 5:
             subckt = model_name or 'OPAMP'
             pins = [node(n) for n in nets]
-            elements.append(f"X{name} {' '.join(pins)} {subckt}")
+            elements.append(f"X{name} {' '.join(pins)} {subckt}{comment}")
         elif model_info:
             pins = [node(n) for n in nets]
             elements.append(f"X{name} {' '.join(pins)} {model_name}")
