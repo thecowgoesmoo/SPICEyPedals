@@ -1,34 +1,25 @@
 .param P_Drive = 0.5
-.param P_Tone = 1
 .param P_Level = 0.5
 .include "/workspace/SPICEyPedals/tools/../PartModels/MicroCap-LIBRARY-for-ngspice/On_Semi.lib"
+.include "/workspace/SPICEyPedals/tools/../PartModels/modelos_subckt/ti/tl072.mod"
 * generated from Boss Super Overdrive SD-1.schx
 VCC VCC 0 DC 9
 VIN IN 0 SIN(0 50m 500)
-CC1 N19 IN 18n
-RR1 VB N19 100k
-CCc N3 N4 47p
+CCc N3 0 47p
 CCz 0 N20 47n
 RR2 N3 N20 4.7k
 RR3 N3 N18 33k
-RDrive N4 N18 {1meg * P_Drive}
-RR5 N4 N6 10k
-CC4 N7 0 18n
-RToneA N22 N23 {22k * (1-P_Tone)}
-RToneB N23 N24 {22k * P_Tone}
-CC5 N9 N24 27n
-RR7 N9 0 470
-RR8 N11 N23 10k
+RDrive 0 N18 {1meg * P_Drive}
+XX4 0 N11 N13 N21 N27 N28 TL072 ; default TL072
 CC6 N11 N17 1u
-RLevelA 0 N16 {10k * (1-P_Level)}
-RLevelB N16 N26 {10k * P_Level}
-RR11 N13 VB 10k
-RS1 0 N16 8
+RLevelA 0 0 {10k * (1-P_Level)}
+RLevelB 0 N26 {10k * P_Level}
+RS1 0 0 8
 RR10 N17 N26 4.7k
-CC3 N27 N28 10n
-DD1 N3 N4 1N916
+XX1 N3 0 N19 TL072 ; default TL072
+XD1 N3 0 N29 1N916
 DD2 N3 N29 1N916
-DD3 N4 N29 1N916
+DD3 0 N29 1N916
 .tran 2u 100m 80m
 .op
 .control

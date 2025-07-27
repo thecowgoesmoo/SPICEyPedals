@@ -144,7 +144,7 @@ def collect_net_ids(wires):
         return net_ids[uf.find(pt)]
     return node
 
-def symbol_pins(pos, points, radius=35):
+def symbol_pins(pos, points, radius=60):
     """Return all wire points within *radius* of *pos*"""
     px, py = pos
     return [p for p in points if math.hypot(px - p[0], py - p[1]) <= radius]
@@ -269,7 +269,7 @@ def process_file(path):
             model = model_name or 'MOS'
             pins = [node(n) for n in nets[:4]]
             elements.append(f"M{name} {' '.join(pins)} {model}{comment}")
-        elif 'OpAmp' in stype and len(nets) >= 5:
+        elif 'OpAmp' in stype and len(nets) >= 2:
             subckt = model_name or 'OPAMP'
             pins = [node(n) for n in nets]
             elements.append(f"X{name} {' '.join(pins)} {subckt}{comment}")
