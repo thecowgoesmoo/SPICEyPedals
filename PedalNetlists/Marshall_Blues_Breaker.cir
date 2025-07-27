@@ -1,6 +1,7 @@
 .param P_Drive = 0.6
 .param P_Tone = 0.8
 .param P_Level = 0.5
+.include "/workspace/SPICEyPedals/tools/../PartModels/modelos_subckt/Diode_BJT_FET/GenSemi/GSdevices.lb5"
 * generated from Marshall Blues Breaker.schx
 VCC VCC 0 DC 9
 VIN IN 0 SIN(0 50m 500)
@@ -27,10 +28,10 @@ CC7 VB N22 10n
 RR9 N21 N22 6.8k
 RLevelA VB N22 {100k * (1-P_Level)}
 RLevelB N22 N23 {100k * P_Level}
-DD1 N12 N25 1N4148
-DD2 N12 N14 1N4148
-DD3 N14 N26 1N4148
-DD4 N25 N26 1N4148
+DD1 N12 N25 d1n4148ws
+DD2 N12 N14 d1n4148ws
+DD3 N14 N26 d1n4148ws
+DD4 N25 N26 d1n4148ws
 .tran 2u 100m 80m
 .op
 .control

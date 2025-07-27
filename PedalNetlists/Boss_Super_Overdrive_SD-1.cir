@@ -1,6 +1,7 @@
 .param P_Drive = 0.5
 .param P_Tone = 1
 .param P_Level = 0.5
+.include "/workspace/SPICEyPedals/tools/../PartModels/MicroCap-LIBRARY-for-ngspice/On_Semi.lib"
 * generated from Boss Super Overdrive SD-1.schx
 VCC VCC 0 DC 9
 VIN IN 0 SIN(0 50m 500)

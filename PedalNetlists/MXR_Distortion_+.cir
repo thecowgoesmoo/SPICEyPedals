@@ -1,5 +1,6 @@
 .param P_Drive = 0.5
 .param P_Level = 1
+.include "/workspace/SPICEyPedals/tools/../PartModels/MicroCap-LIBRARY-for-ngspice/UA741.MOD"
 * generated from MXR Distortion +.schx
 VCC VCC 0 DC 9
 VIN IN 0 SIN(0 50m 500)
@@ -17,6 +18,7 @@ CC5 N15 N16 1n
 RLevelA N15 0 {10k * (1-P_Level)}
 RLevelB 0 N19 {10k * P_Level}
 RS1 N19 0 8
+XX1 N8 N9 N11 0 VCC UA741
 DD1 N15 N16 1N34A
 DD2 N15 0 1N34A
 .tran 2u 100m 80m

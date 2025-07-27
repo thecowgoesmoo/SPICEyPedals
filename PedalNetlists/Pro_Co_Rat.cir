@@ -1,7 +1,8 @@
 .param P_Distortion = 0.5
 .param P_Tone = 0.5
 .param P_Volume = 0.5
-.include "/workspace/SPICEyPedals/tools/../PartModels/1N914.LIB"
+.include "/workspace/SPICEyPedals/tools/../PartModels/MicroCap-LIBRARY-for-ngspice/On_Semi.lib"
+.include "/workspace/SPICEyPedals/tools/../PartModels/modelos_subckt/ti/lm308.mod"
 * generated from Pro Co Rat.schx
 VCC VCC 0 DC 9
 VIN IN 0 SIN(0 50m 500)
@@ -14,15 +15,17 @@ RR2 N2 N9 560
 RR3 N7 N8 47
 RR6 N12 N13 1.5k
 CC5 N13 0 3.3n
-DD1 N5 0 1N914
-DD2 N5 0 1N914
+DD1 N5 0 D1N914a
+DD2 N5 0 D1N914a
 CC6 N15 N17 22n
 RR1 0 N17 1meg
+XX1 N2 N3 VCC 0 N21 LM308
 RR7 0 IN 1meg
 CC8 N22 IN 22n
 RR8 N23 VB 1meg
 RR9 N21 N22 1k
 CC9 0 N21 1n
+JQ1 N17 N27 VCC 2N5458
 CC7 N30 N31 1u
 RS1 N33 0 8
 RDistortion N3 N7 {100k * P_Distortion}

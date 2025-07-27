@@ -1,6 +1,6 @@
 .param P_Trimmer = 0.5
 .param P_Speed = 0.5
-.include "/workspace/SPICEyPedals/tools/../PartModels/1N914.LIB"
+.include "/workspace/SPICEyPedals/tools/../PartModels/MicroCap-LIBRARY-for-ngspice/On_Semi.lib"
 * generated from MXR Phase 90.schx
 VCC VCC 0 DC 9
 VIN IN 0 SIN(0 50m 500)
@@ -42,9 +42,13 @@ RR25 N5 N35 150k
 RR26 N36 0 56k
 CC10 N36 N38 47n
 RS1 N38 0 8
-DD1 N22 0 1N914
+DD1 N22 0 D1N914a
+JQ2 N7 N8 N9 2N5952
+JQ3 N8 N9 N12 2N5952
+JQ4 N8 N9 N15 2N5952
+JQ5 N8 N9 N18 2N5952
 QQ1 N8 N35 N36 2N4125
-DD2 N23 0 1N4733
+DD2 N23 0 D1N4733
 .tran 2u 100m 80m
 .op
 .control

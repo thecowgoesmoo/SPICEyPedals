@@ -1,6 +1,7 @@
 .param P_Drive = 0.1
 .param P_Tone = 1
 .param P_Level = 0.5
+.include "/workspace/SPICEyPedals/tools/../PartModels/modelos_subckt/Diode_BJT_FET/GenSemi/GSdevices.lb5"
 * generated from Ibanez Tube Screamer TS-9.schx
 VCC VCC 0 DC 9
 VIN IN 0 SIN(0 50m 500)
@@ -23,8 +24,8 @@ RLevelA 0 N20 {100k * (1-P_Level)}
 RLevelB N20 N21 {100k * P_Level}
 RR11 N17 VB 10k
 RS1 0 N20 8
-DD1 N8 N9 1N4148
-DD2 N5 N6 1N4148
+DD1 N8 N9 d1n4148ws
+DD2 N5 N6 d1n4148ws
 .tran 2u 100m 80m
 .op
 .control
