@@ -9,6 +9,8 @@ BASE_DIR = os.path.join(os.path.dirname(__file__), '..')
 SCHEM_DIR = os.path.join(BASE_DIR, 'SchemToImport', 'Examples')
 OUT_DIR = os.path.join(BASE_DIR, 'PedalNetlists')
 MODELS_DIR = os.path.join(BASE_DIR, 'PartModels')
+MODEL_INDEX = os.path.join(MODELS_DIR, 'ModelDirectory.txt')
+SUBCKT_INDEX = os.path.join(MODELS_DIR, 'SubcircuitDirectory.txt')
 
 UNIT_MAP = {
     'Ω': '', 'kΩ': 'k', 'MΩ': 'meg',
@@ -17,6 +19,47 @@ UNIT_MAP = {
     'V': '', 'A': '', 'mA': 'mA', 'uA': 'uA', 'nA': 'nA'
 }
 FLOAT_RE = re.compile(r'([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)')
+
+# load model/subcircuit directories once
+def _load_index(fname: str):
+    entries: list[tuple[str, str, bool]] = []
+    if not os.path.exists(fname):
+        return entries
+    with open(fname, 'r', errors='ignore') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            parts = line.split(':', 2)
+            if len(parts) < 3:
+                continue
+            path, _line, stmt = parts
+            if path.startswith('./'):
+                path = os.path.join(BASE_DIR, path[2:])
+            tokens = stmt.strip().split()
+            if len(tokens) < 2:
+                continue
+            directive = tokens[0].lower()
+            if directive in ('.model', '.subckt'):
+                name = tokens[1]
+                entries.append((path, name, directive == '.subckt'))
+    return entries
+
+MODEL_ENTRIES = _load_index(MODEL_INDEX)
+SUBCKT_ENTRIES = _load_index(SUBCKT_INDEX)
+
+def find_model(part: str):
+    """Return (path, name, is_subckt) for *part* if present in indices."""
+    if not part:
+        return None
+    target = part.upper()
+    for path, name, is_sub in SUBCKT_ENTRIES:
+        if target in name.upper() or target in os.path.basename(path).upper():
+            return path, name, True
+    for path, name, is_sub in MODEL_ENTRIES:
+        if target in name.upper() or target in os.path.basename(path).upper():
+            return path, name, False
+    return None
 
 def sanitize(name: str) -> str:
     """Convert schematic names into safe SPICE identifiers."""
@@ -148,6 +191,11 @@ def process_file(path):
         attrs = sym['attrs']
         name = sanitize(attrs.get('Name', 'X'))
         stype = sym['type']
+        model_info = find_model(attrs.get('PartNumber'))
+        model_name = attrs.get('PartNumber')
+        if model_info:
+            includes.add(f".include \"{model_info[0]}\"")
+            model_name = model_info[1]
 
         if 'Potentiometer' in stype and len(nets) == 3:
             pname = f"P_{name}"
@@ -170,22 +218,29 @@ def process_file(path):
             val = parse_value(attrs.get('Voltage', '0')) or '0'
             elements.append(f"V{name} {node(nets[0])} {node(nets[1])} {val}")
         elif 'Diode' in stype and len(nets) == 2:
-            model = attrs.get('PartNumber', 'D')
+            model = model_name or 'D'
             elements.append(f"D{name} {node(nets[0])} {node(nets[1])} {model}")
-        elif 'BipolarJunctionTransistor' in stype and len(nets) == 3:
-            model = attrs.get('PartNumber', 'Q')
-            elements.append(f"Q{name} {node(nets[0])} {node(nets[1])} {node(nets[2])} {model}")
+        elif 'BipolarJunctionTransistor' in stype and len(nets) >= 3:
+            model = model_name or 'Q'
+            pins = [node(n) for n in nets[:3]]
+            elements.append(f"Q{name} {' '.join(pins)} {model}")
+        elif 'FieldEffectTransistor' in stype and len(nets) >= 3:
+            model = model_name or 'JFET'
+            pins = [node(n) for n in nets[:3]]
+            elements.append(f"J{name} {' '.join(pins)} {model}")
+        elif any(t in stype for t in ['MOSFET', 'MOS', 'NMOS', 'PMOS']) and len(nets) >= 4:
+            model = model_name or 'MOS'
+            pins = [node(n) for n in nets[:4]]
+            elements.append(f"M{name} {' '.join(pins)} {model}")
+        elif 'OpAmp' in stype and len(nets) >= 5:
+            subckt = model_name or 'OPAMP'
+            pins = [node(n) for n in nets]
+            elements.append(f"X{name} {' '.join(pins)} {subckt}")
+        elif model_info:
+            pins = [node(n) for n in nets]
+            elements.append(f"X{name} {' '.join(pins)} {model_name}")
         elif 'Speaker' in stype and len(nets) == 2:
             elements.append(f"R{name} {node(nets[0])} {node(nets[1])} 8")
-
-        # look for matching model file
-        pn = attrs.get('PartNumber')
-        if pn:
-            for ext in ('.301', '.lib', '.LIB', '.sub', '.SUB', '.cir', '.mod', '.MOD'):
-                fpath = os.path.join(MODELS_DIR, pn + ext)
-                if os.path.exists(fpath):
-                    includes.add(f".include \"{fpath}\"")
-                    break
 
     header = []
     header.extend(params)
